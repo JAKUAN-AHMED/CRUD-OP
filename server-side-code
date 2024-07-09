@@ -1,18 +1,17 @@
-const express = require("express");
-const cors = require("cors");
+const express = require('express');
+const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const app = express();
-const port = process.env.PORT || 3000;
-
+const app=express();
+const port=process.env.PORT || 3000;
 //midlewares
 app.use(cors());
 app.use(express.json());
 
-//pass-44KsD00rTSMqZRkL
-//user-Jakuan
+
+//connect to mongo dp
 
 const uri =
-  "mongodb+srv://Jakuan:44KsD00rTSMqZRkL@cluster0.jkydfau.mongodb.net/?appName=Cluster0";
+  "mongodb+srv://Jakuan:OjWYLJ0YFQWct3j8@cluster0.tuasx7e.mongodb.net/?appName=Cluster0";
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -27,59 +26,53 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
-
-    //create collection || make putting data in db
-    const UserCollection = client.db("userDB").collection("users");
-    //get || read = single doc
-    app.get("/users/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const user = await UserCollection.findOne(query);
-      res.send(user);
-    });
-    //get || read = multiple doc
-    app.get("/users", async (req, res) => {
-      const cursor = UserCollection.find();
-      const user = await cursor.toArray();
-      res.send(user);
-    });
-
+    const userCollection=client.db('UserInfo').collection('users');
+    //get ||read == single doc
+    app.get('/users/:id',async(req,res)=>{
+        const id=req.params.id;
+        const query={_id:new ObjectId(id)}
+        const user=await userCollection.findOne(query);
+        console.log('single user',user)
+        res.send(user)
+    })
+    // get || read = multiple doc
+    app.get('/users',async(req,res)=>{
+        const cursor=userCollection.find();
+        const result=await cursor.toArray();
+        res.send(result)
+    })
     //create || post
-    app.post("/users", async (req, res) => {
-      const newUser = req.body;
-      console.log("new user", newUser);
-      const result = await UserCollection.insertOne(newUser);
-      res.send(result);
-    });
+    app.post('/users',async(req,res)=>{
+        const newUser=req.body;
+        console.log('added new user',newUser)
+        const result=await userCollection.insertOne(newUser);
+        res.send(result)
 
-    //update || put 
-    app.put("/users/:id",async (req, res) => {
-      const id=req.params.id;
-      const user=req.body
-      console.log('updated user',user)
-      const filter={_id : new ObjectId(id)}
-      const option={upsert:true}
-      const updateUser={
-        $set:{
-          name:user.name,
-          email:user.email,
-        }
-      }
-      const result=await UserCollection.updateOne(filter,updateUser,option);
-      res.send(result)
-
-    });
-
+    })
     //delete || remove
-    app.delete("/users/:id", async (req, res) => {
-      const id = req.params.id;
-      console.log("please delete this FROM DATABASE", id);
-      const query = { _id: new ObjectId(id) };
-      const deleteUser = await UserCollection.deleteOne(query);
-      console.log("Successfully deleted this user", deleteUser);
-      res.send(deleteUser);
-    });
-
+    app.delete('/users/:id',async(req,res)=>{
+        const id=req.params.id;
+        const query={_id:new ObjectId(id)}
+        const result=await userCollection.deleteOne(query)
+        console.log('deleted user',result)
+        res.send(result)
+    })
+    //update user
+    app.put("/update/:id",async(req,res)=>{
+        const id=req.params.id;
+        const user=req.body;
+        const filter={_id : new ObjectId(id)}
+        const option={upsert:true}
+        const updatedUser={
+            $set:{
+                name:user.name,
+                email:user.email,
+            }
+        }
+        const result=await userCollection.updateOne(filter,updatedUser,option);
+        console.log('updated user',updatedUser)
+        res.send(result)
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
@@ -92,11 +85,10 @@ async function run() {
 }
 run().catch(console.dir);
 
-app.get("/", (req, res) => {
-  res.send("SIMPLE CRUD IS RUNNING");
-});
 
-//listen
-app.listen(port, (req, res) => {
-  console.log(`SIMPLE CRUD IS RUNNING ON PORT ${port}`);
-});
+
+
+//connection port
+app.listen(port,(req,res)=>{
+    console.log(`server running on port ${port}`);
+})
